@@ -1,16 +1,16 @@
 # Astro Legal Pages
 
-다국어를 지원하는 법률 페이지(이용약관, 개인정보처리방침) 생성을 위한 미니멀 Astro 템플릿입니다.
+MDX를 사용한 멀티 서비스 및 다국어 지원 법률 페이지(이용약관, 개인정보처리방침) 생성을 위한 미니멀 Astro 템플릿입니다.
 
 [English](./README.md)
 
 ## 기능
 
-- 이용약관 페이지 (`/terms`)
-- 개인정보처리방침 페이지 (`/privacy`)
+- 멀티 서비스 지원 (`/service-a/en/terms`, `/service-b/ko/privacy` 등)
 - 다국어 지원 (영어, 한국어)
-- 단일 설정 파일로 간편한 커스터마이징
-- 최소 의존성 (Astro만 사용)
+- MDX 기반 콘텐츠로 쉬운 편집
+- 서비스별 설정
+- 최소 의존성
 
 ## 빠른 시작
 
@@ -24,18 +24,25 @@ GitHub에서 **"Use this template"** 버튼을 클릭하여 새 저장소를 생
 npm install
 ```
 
-### 3. 사이트 설정
+### 3. 서비스 설정
 
 `src/config.ts` 파일을 수정하세요:
 
 ```typescript
-export const config = {
-  siteName: '사이트 이름',
-  siteUrl: 'https://example.com',
-  contactEmail: 'contact@example.com',
-  lastUpdated: '2024-01-01',
-  locale: 'ko', // 'en' | 'ko'
-};
+export const services = {
+  'service-a': {
+    siteName: 'Service A',
+    siteUrl: 'https://service-a.example.com',
+    contactEmail: 'contact@service-a.example.com',
+    lastUpdated: '2024-01-01',
+  },
+  'service-b': {
+    siteName: 'Service B',
+    siteUrl: 'https://service-b.example.com',
+    contactEmail: 'contact@service-b.example.com',
+    lastUpdated: '2024-01-01',
+  },
+} as const;
 ```
 
 ### 4. 개발 서버 실행
@@ -54,46 +61,82 @@ npm run build
 
 ```
 ├── src/
-│   ├── config.ts           # 사이트 설정 (이 파일을 수정)
-│   ├── i18n/
-│   │   ├── en.ts           # 영어 번역
-│   │   └── ko.ts           # 한국어 번역
+│   ├── config.ts              # 서비스 설정 (이 파일을 수정)
+│   ├── content.config.ts      # Content Collection 스키마
+│   ├── content/
+│   │   ├── service-a/
+│   │   │   ├── en/
+│   │   │   │   ├── terms.mdx
+│   │   │   │   └── privacy.mdx
+│   │   │   └── ko/
+│   │   │       ├── terms.mdx
+│   │   │       └── privacy.mdx
+│   │   └── service-b/
+│   │       ├── en/
+│   │       └── ko/
 │   └── pages/
-│       ├── terms.astro     # 이용약관 페이지
-│       └── privacy.astro   # 개인정보처리방침 페이지
+│       └── [service]/
+│           └── [lang]/
+│               ├── terms.astro
+│               └── privacy.astro
 ├── astro.config.mjs
 ├── package.json
 └── tsconfig.json
 ```
 
+## URL
+
+- `/service-a/en/terms` - Service A 영어 이용약관
+- `/service-a/ko/terms` - Service A 한국어 이용약관
+- `/service-a/en/privacy` - Service A 영어 개인정보처리방침
+- `/service-a/ko/privacy` - Service A 한국어 개인정보처리방침
+- `/service-b/en/terms` - Service B 영어 이용약관
+- ...
+
 ## 커스터마이징
 
-### 언어 변경
+### 새 서비스 추가
 
-`src/config.ts`에서 `locale`을 설정하세요:
+1. `src/config.ts`에 서비스 설정 추가:
+   ```typescript
+   export const services = {
+     // ...기존 서비스
+     'new-service': {
+       siteName: 'New Service',
+       siteUrl: 'https://new-service.example.com',
+       contactEmail: 'contact@new-service.example.com',
+       lastUpdated: '2024-01-01',
+     },
+   };
+   ```
 
-```typescript
-locale: 'ko', // 한국어
-```
+2. 콘텐츠 폴더 생성:
+   ```bash
+   cp -r src/content/service-a src/content/new-service
+   ```
 
-### 내용 수정
+3. `src/content/new-service/`의 MDX 파일 수정
 
-`src/i18n/` 폴더의 번역 파일을 수정하세요:
+### 콘텐츠 편집
 
-- `en.ts` - 영어 콘텐츠
-- `ko.ts` - 한국어 콘텐츠
+`src/content/[service]/[lang]/`의 MDX 파일을 수정하세요:
+
+- `terms.mdx` - 이용약관
+- `privacy.mdx` - 개인정보처리방침
+
+### 플레이스홀더
+
+MDX 콘텐츠에서 다음 플레이스홀더를 사용할 수 있습니다 (서비스별로 자동 치환됨):
+
+- `%siteName%` - 서비스 이름
+- `%siteUrl%` - 서비스 URL
+- `%contactEmail%` - 연락처 이메일
 
 ### 새 언어 추가
 
-1. `src/i18n/`에 새 파일 생성 (예: `ja.ts`)
-2. `en.ts`의 구조를 복사
-3. 모든 내용 번역
-4. `src/config.ts`에서 새 locale 지원 추가
-5. 페이지 파일에서 새 번역 import
-
-### 스타일 커스터마이징
-
-각 `.astro` 페이지 파일의 `<style>` 섹션을 수정하세요.
+1. `src/config.ts`의 `languages` 배열에 언어 코드 추가
+2. 각 서비스에 언어 폴더 생성: `src/content/[service]/[new-lang]/`
+3. MDX 파일 복사 및 번역
 
 ## 라이선스
 

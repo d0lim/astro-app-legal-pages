@@ -1,16 +1,16 @@
 # Astro Legal Pages
 
-A minimal Astro template for generating legal pages (Terms of Service, Privacy Policy) with i18n support.
+A minimal Astro template for generating legal pages (Terms of Service, Privacy Policy) with multi-service and i18n support using MDX.
 
 [한국어](./README.ko.md)
 
 ## Features
 
-- Terms of Service page (`/terms`)
-- Privacy Policy page (`/privacy`)
+- Multi-service support (`/service-a/en/terms`, `/service-b/ko/privacy`, etc.)
 - Multi-language support (English, Korean)
-- Single config file for easy customization
-- Minimal dependencies (Astro only)
+- MDX-based content for easy editing
+- Per-service configuration
+- Minimal dependencies
 
 ## Quick Start
 
@@ -24,18 +24,25 @@ Click the **"Use this template"** button on GitHub to create a new repository.
 npm install
 ```
 
-### 3. Configure your site
+### 3. Configure your services
 
 Edit `src/config.ts`:
 
 ```typescript
-export const config = {
-  siteName: 'Your Site Name',
-  siteUrl: 'https://example.com',
-  contactEmail: 'contact@example.com',
-  lastUpdated: '2024-01-01',
-  locale: 'en', // 'en' | 'ko'
-};
+export const services = {
+  'service-a': {
+    siteName: 'Service A',
+    siteUrl: 'https://service-a.example.com',
+    contactEmail: 'contact@service-a.example.com',
+    lastUpdated: '2024-01-01',
+  },
+  'service-b': {
+    siteName: 'Service B',
+    siteUrl: 'https://service-b.example.com',
+    contactEmail: 'contact@service-b.example.com',
+    lastUpdated: '2024-01-01',
+  },
+} as const;
 ```
 
 ### 4. Run development server
@@ -54,46 +61,82 @@ npm run build
 
 ```
 ├── src/
-│   ├── config.ts           # Site configuration (edit this)
-│   ├── i18n/
-│   │   ├── en.ts           # English translations
-│   │   └── ko.ts           # Korean translations
+│   ├── config.ts              # Services configuration (edit this)
+│   ├── content.config.ts      # Content Collection schema
+│   ├── content/
+│   │   ├── service-a/
+│   │   │   ├── en/
+│   │   │   │   ├── terms.mdx
+│   │   │   │   └── privacy.mdx
+│   │   │   └── ko/
+│   │   │       ├── terms.mdx
+│   │   │       └── privacy.mdx
+│   │   └── service-b/
+│   │       ├── en/
+│   │       └── ko/
 │   └── pages/
-│       ├── terms.astro     # Terms of Service page
-│       └── privacy.astro   # Privacy Policy page
+│       └── [service]/
+│           └── [lang]/
+│               ├── terms.astro
+│               └── privacy.astro
 ├── astro.config.mjs
 ├── package.json
 └── tsconfig.json
 ```
 
+## URLs
+
+- `/service-a/en/terms` - Service A English Terms
+- `/service-a/ko/terms` - Service A Korean Terms
+- `/service-a/en/privacy` - Service A English Privacy
+- `/service-a/ko/privacy` - Service A Korean Privacy
+- `/service-b/en/terms` - Service B English Terms
+- ...
+
 ## Customization
 
-### Change Language
+### Add New Service
 
-Set `locale` in `src/config.ts`:
+1. Add service config to `src/config.ts`:
+   ```typescript
+   export const services = {
+     // ...existing services
+     'new-service': {
+       siteName: 'New Service',
+       siteUrl: 'https://new-service.example.com',
+       contactEmail: 'contact@new-service.example.com',
+       lastUpdated: '2024-01-01',
+     },
+   };
+   ```
 
-```typescript
-locale: 'ko', // Korean
-```
+2. Create content folder:
+   ```bash
+   cp -r src/content/service-a src/content/new-service
+   ```
 
-### Modify Content
+3. Edit MDX files in `src/content/new-service/`
 
-Edit the translation files in `src/i18n/`:
+### Edit Content
 
-- `en.ts` - English content
-- `ko.ts` - Korean content
+Edit MDX files in `src/content/[service]/[lang]/`:
+
+- `terms.mdx` - Terms of Service
+- `privacy.mdx` - Privacy Policy
+
+### Placeholders
+
+Use these placeholders in MDX content (automatically replaced per service):
+
+- `%siteName%` - Service name
+- `%siteUrl%` - Service URL
+- `%contactEmail%` - Contact email
 
 ### Add New Language
 
-1. Create a new file in `src/i18n/` (e.g., `ja.ts`)
-2. Copy the structure from `en.ts`
-3. Translate all content
-4. Update `src/config.ts` to support the new locale
-5. Update page files to import the new translation
-
-### Customize Styling
-
-Edit the `<style>` section in each `.astro` page file.
+1. Add language code to `languages` array in `src/config.ts`
+2. Create language folder in each service: `src/content/[service]/[new-lang]/`
+3. Copy and translate MDX files
 
 ## License
 

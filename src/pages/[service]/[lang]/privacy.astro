@@ -1,0 +1,75 @@
+---
+import { getEntry, render } from 'astro:content';
+import { services, languages, replacePlaceholders, getServiceIds, type ServiceId, type Lang } from '../../../config';
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const service of getServiceIds()) {
+    for (const lang of languages) {
+      paths.push({ params: { service, lang } });
+    }
+  }
+  return paths;
+}
+
+const { service, lang } = Astro.params as { service: ServiceId; lang: Lang };
+const config = services[service];
+
+if (!config) {
+  return Astro.redirect('/404');
+}
+
+const entry = await getEntry('legal', `${service}/${lang}/privacy`);
+
+if (!entry) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await render(entry);
+const title = entry.data.title;
+const lastUpdatedLabel = lang === 'ko' ? '최종 업데이트' : 'Last updated';
+---
+
+<html lang={lang}>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} - {config.siteName}</title>
+  <meta name="description" content={`${title} for ${config.siteName}`} />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      color: #333;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; color: #1a1a1a; }
+    .last-updated { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+    a { color: #0066cc; }
+    ul { padding-left: 1.5rem; }
+    li { margin: 0.5rem 0; }
+    article :global(h2:first-child) { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{title}</h1>
+    <p class="last-updated">{lastUpdatedLabel}: {config.lastUpdated}</p>
+    <article class="content">
+      <Content />
+    </article>
+  </main>
+</body>
+</html>
+
+<script define:vars={{ config }}>
+  document.querySelectorAll('.content').forEach(el => {
+    el.innerHTML = el.innerHTML
+      .replace(/%siteName%/g, config.siteName)
+      .replace(/%siteUrl%/g, config.siteUrl)
+      .replace(/%contactEmail%/g, config.contactEmail);
+  });
+</script>
