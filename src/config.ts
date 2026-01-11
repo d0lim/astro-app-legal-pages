@@ -24,6 +24,9 @@ export type ServiceId = keyof typeof services;
 export type Lang = (typeof languages)[number];
 export type ServiceConfig = (typeof services)[ServiceId];
 
+/** Default language for redirects */
+export const defaultLang: Lang = 'ko';
+
 /** Get service config by ID */
 export function getServiceConfig(serviceId: string): ServiceConfig | undefined {
   return services[serviceId as ServiceId];
